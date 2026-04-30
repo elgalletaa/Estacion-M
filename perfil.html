@@ -1,1 +1,226 @@
-<h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estación Meteorológica</title>
+    <!-- Fuente digital para replicar la pantalla de la imagen -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #111;
+            --panel-bg: #000;
+            --text-main: #fff;
+            --text-accent: #00d2ff; /* Azul neón de la imagen */
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Share Tech Mono', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #444;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        .panel {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Títulos de sección azules */
+        .panel-header {
+            color: var(--text-accent);
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background-color: #1a1a1a;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+        }
+
+        .data-value {
+            font-size: 3.5em;
+            text-align: right;
+            margin: 10px 0;
+        }
+
+        .unit {
+            font-size: 0.4em;
+            color: #aaa;
+        }
+
+        /* Panel de Fecha y Hora */
+        .time-panel {
+            grid-column: span 2;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .clock {
+            font-size: 4em;
+            color: #fff;
+        }
+
+        .date-loc {
+            font-size: 1.2em;
+            color: #ccc;
+        }
+
+        .location {
+            color: var(--text-accent);
+            margin-top: 5px;
+        }
+
+        /* Estado de conexión */
+        #status {
+            font-size: 0.8em;
+            color: #ffaa00;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .status-ok { color: #00ff00 !important; }
+        .status-err { color: #ff0000 !important; }
+    </style>
+</head>
+<body>
+
+    <div>
+        <div class="dashboard">
+            <!-- Temperatura y Humedad -->
+            <div class="panel">
+                <div class="panel-header">Outdoor Temp & Hum</div>
+                <div class="data-value"><span id="temp">--.-</span><span class="unit">°C</span></div>
+                <div class="data-value"><span id="hum">--</span><span class="unit">%</span></div>
+            </div>
+
+            <!-- Viento (Anemómetro) -->
+            <div class="panel">
+                <div class="panel-header">Wind Speed</div>
+                <div class="data-value"><span id="wind">--.-</span><span class="unit">km/h</span></div>
+                <div style="text-align: right; color: #888;">Anemómetro</div>
+            </div>
+
+            <!-- Presión (Barómetro) -->
+            <div class="panel">
+                <div class="panel-header">Barometer</div>
+                <div class="data-value"><span id="press">----</span><span class="unit">hPa</span></div>
+                <div style="text-align: right; color: #888;">Relativo</div>
+            </div>
+
+            <!-- Lluvia (Pluviómetro) -->
+            <div class="panel">
+                <div class="panel-header">Rainfall</div>
+                <div class="data-value"><span id="rain">-.--</span><span class="unit">mm</span></div>
+                <div style="text-align: right; color: #888;">Diario</div>
+            </div>
+
+            <!-- Reloj y Ubicación (Ocupa 2 columnas) -->
+            <div class="panel time-panel">
+                <div>
+                    <div class="panel-header">Date & Location</div>
+                    <div class="date-loc" id="current-date">-- -- ----</div>
+                    <div class="location">📍 Chilpancingo, Gro.</div>
+                </div>
+                <div class="clock" id="current-time">--:--</div>
+            </div>
+        </div>
+        <div id="status">Esperando datos de ThingSpeak...</div>
+    </div>
+
+    <script>
+        // Configuración de ThingSpeak
+        const CHANNEL_ID = '3315205';
+        const READ_API_KEY = 'T7L0HEUX8140WICI'; 
+        
+        // Mapeo de campos (Ajusta estos números según cómo envía los datos tu ESP32)
+        const FIELD_TEMP = 'field1';
+        const FIELD_HUM = 'field2';
+        const FIELD_PRESS = 'field3';
+        const FIELD_WIND = 'field4'; // Anemómetro
+        const FIELD_RAIN = 'field5'; // Pluviómetro
+
+        async function fetchThingSpeakData() {
+            const statusEl = document.getElementById('status');
+            const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${READ_API_KEY}&results=1`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.feeds && data.feeds.length > 0) {
+                    const latest = data.feeds[0];
+                    
+                    // Actualizar UI asegurando que hayan datos, si no, mantener un guion
+                    document.getElementById('temp').innerText = latest[FIELD_TEMP] ? parseFloat(latest[FIELD_TEMP]).toFixed(1) : '--.-';
+                    document.getElementById('hum').innerText = latest[FIELD_HUM] ? parseFloat(latest[FIELD_HUM]).toFixed(0) : '--';
+                    document.getElementById('press').innerText = latest[FIELD_PRESS] ? parseFloat(latest[FIELD_PRESS]).toFixed(0) : '----';
+                    document.getElementById('wind').innerText = latest[FIELD_WIND] ? parseFloat(latest[FIELD_WIND]).toFixed(1) : '--.-';
+                    document.getElementById('rain').innerText = latest[FIELD_RAIN] ? parseFloat(latest[FIELD_RAIN]).toFixed(2) : '-.--';
+
+                    statusEl.innerText = `🟢 Conectado - Última actualización: ${new Date(latest.created_at).toLocaleTimeString()}`;
+                    statusEl.className = 'status-ok';
+                } else {
+                    statusEl.innerText = "🟡 El canal no tiene datos recientes.";
+                }
+            } catch (error) {
+                console.error("Error al obtener datos:", error);
+                statusEl.innerText = "🔴 Error de conexión con ThingSpeak.";
+                statusEl.className = 'status-err';
+            }
+        }
+
+        // Función para actualizar Reloj y Fecha Local
+        function updateClock() {
+            const now = new Date();
+            
+            // Formatear Hora
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            document.getElementById('current-time').innerText = `${hours}:${minutes} ${ampm}`;
+
+            // Formatear Fecha
+            const options = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('es-ES', options).toUpperCase();
+        }
+
+        // Inicializar reloj e intervalo (cada segundo)
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Inicializar datos meteorológicos e intervalo (ThingSpeak permite actualizaciones cada 15 segs)
+        fetchThingSpeakData();
+        setInterval(fetchThingSpeakData, 15000);
+    </script>
+</body>
+</html>

@@ -221,13 +221,13 @@
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag" style="background-color: #ff0000;">GRÁFICA SEMANAL DE PRESIÓN ADMOSFERICA</div>
-            <div class="chart-container"><canvas id="pressChart"></canvas></div>
+            <div class="tag" style="background-color: #FF5700;">GRÁFICA SEMANAL DE VIENTO</div>
+            <div class="chart-container"><canvas id="windChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag" style="background-color: #FF5700;">GRÁFICA SEMANAL DE VIENTO</div>
-            <div class="chart-container"><canvas id="windChart"></canvas></div>
+            <div class="tag" style="background-color: #ff0000;">GRÁFICA SEMANAL DE PRESIÓN ADMOSFERICA</div>
+            <div class="chart-container"><canvas id="pressChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
@@ -342,8 +342,8 @@
                 
                 createChart('tempChart', 'Temperatura (°C)', t, lbl, '#F6FF00', 'rgba(246, 255, 0, 0.2)');
                 createChart('humChart', 'Humedad (%)', h, lbl, '#00ff00', 'rgba(0, 255, 0, 0.2)');
-                createChart('pressChart', 'Presión (hPa)', p, lbl, '#ff0000', 'rgba(255, 0, 0, 0.2)');
                 createChart('windChart', 'Viento (km/h)', w, lbl, '#FF5700', 'rgba(255, 87, 0, 0.2)');
+                createChart('pressChart', 'Presión (hPa)', p, lbl, '#ff0000', 'rgba(255, 0, 0, 0.2)');
                 createChart('rainChart', 'Lluvia (mm)', rn, lbl, '#0055ff', 'rgba(0, 85, 255, 0.2)');
             } catch (e) { 
                 console.error("Error al graficar", e); 

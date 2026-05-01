@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estación Meteorológica ESP32</title>
+    <meta name="author" content="Jose Hugo Leyva Chona">
+    <title>Estación Meteorológica ESP32</title> 
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
-            box-sizing: border-box;
+            box-sizing: border-box; 
             margin: 0;
             padding: 0;
         }
@@ -111,26 +112,29 @@
         .info-col {
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
+            justify-content: space-between; 
             width: 50%;
+            height: 100%; 
         }
 
         .clock {
             font-size: 5.5vw;
             line-height: 1;
             text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+            margin: auto 0; 
         }
 
         .date {
             font-size: 3vw;
             line-height: 1;
-            margin-bottom: 10px;
+            margin: auto 0; 
         }
 
         .astro-text {
             font-size: 1.2vw;
             color: #ffeb3b;
             margin-top: 5px;
+            white-space: nowrap;
         }
 
         .chart-container {
@@ -193,12 +197,11 @@
 
         <div class="panel panel-time">
             <div class="info-col">
-                
                 <div class="tag">FECHA Y LUNA</div>
                 <div class="date" id="date">--/--/--</div>
                 <div class="astro-text">Fase Lunar: <span id="moon-phase">Calculando...</span> 🌖</div>
             </div>
-            <div class="info-col" style="align-items: flex-end; text-align: right; ">
+            <div class="info-col" style="align-items: flex-end; text-align: right;">
                 <div class="tag">HORA Y SOL</div>
                 <div class="clock" id="time">--:--</div>
                 <div class="astro-text">

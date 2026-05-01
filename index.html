@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estación Meteorológica ESP32</title>
+    <!-- Fuente digital para los números -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- Librería para la gráfica -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #000;
+            color: #fff;
+            font-family: 'Share Tech Mono', monospace;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden; /* Evita barras de desplazamiento */
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Estructura del tablero que abarca todo el margen */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: 1fr 1fr 1.5fr;
+            gap: 2px; /* Líneas divisorias como en la imagen */
+            background-color: #333; /* Color de las líneas divisorias */
+            height: 100%;
+            width: 100%;
+            border: 2px solid #333;
+        }
+
+        .panel {
+            background-color: #000; /* Fondo negro de cada recuadro */
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Etiqueta azul con letras negras estilo GARNI */
+        .tag {
+            background-color: #00d2ff;
+            color: #000;
+            font-family: sans-serif;
+            font-weight: 900;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            display: inline-block;
+            align-self: flex-start;
+            margin-bottom: 10px;
+            border-radius: 2px;
+        }
+
+        .data-container {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .value {
+            font-size: 5vw; /* Tamaño dinámico según la pantalla */
+            text-align: right;
+            line-height: 1;
+        }
+
+        .unit {
+            font-size: 0.35em;
+            color: #aaa;
+            margin-left: 5px;
+        }
+
+        /* Textos pequeños debajo de los números */
+        .sub-text {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.9em;
+            color: #888;
+            font-family: sans-serif;
+        }
+
+        /* Paneles específicos que ocupan más espacio */
+        .panel-graph {
+            grid-column: span 2;
+            padding-bottom: 5px;
+        }
+        
+        .panel-time {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+
+        /* Estilos Fecha, Hora, Sol y Luna */
+        .info-col {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 50%;
+        }
+        
+        .clock { font-size: 5.5vw; line-height: 1; }
+        .date { font-size: 3vw; line-height: 1; margin-bottom: 10px;}
+        .astro-text { font-size: 1.2vw; color: #ffeb3b; margin-top: 5px;}
+
+        /* Contenedor de la gráfica */
+        .chart-container {
+            position: relative;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- FILA 1 -->
+        <div class="panel">
+            <div class="tag">TEMPERATURA</div>
+            <div class="data-container">
+                <span class="value" id="temp">--.-</span><span class="unit">°C</span>
+            </div>
+            <div class="sub-text">EXTERIOR</div>
+        </div>
+
+        <div class="panel">
+            <div class="tag">VIENTO</div>
+            <div class="data-container">
+                <span class="value" id="wind">--.-</span><span class="unit">km/h</span>
+            </div>
+            <div class="sub-text">ANEMÓMETRO</div>
+        </div>
+
+        <div class="panel">
+            <div class="tag">PRESIÓN</div>
+            <div class="data-container">
+                <span class="value" id="press">----</span><span class="unit">hPa</span>
+            </div>
+            <div class="sub-text">BARÓMETRO</div>
+        </div>
+
+        <div class="panel">
+            <div class="tag">PLUVIÓMETRO</div>
+            <div class="data-container">
+                <span class="value" id="rain">-.--</span><span class="unit">mm</span>
+            </div>
+            <div class="sub-text">DIARIO</div>
+        </div>
+
+        <!-- FILA 2 -->
+        <div class="panel">
+            <div class="tag">HUMEDAD</div>
+            <div class="data-container">
+                <span class="value" id="hum">--</span><span class="unit">%</span>
+            </div>
+            <div class="sub-text">RELATIVA</div>
+        </div>
+
+        <div class="panel">
+            <div class="tag">ESTADO RED</div>
+            <div class="data-container" style="flex-direction: column;">
+                <span class="value" id="status-icon" style="color: #00ff00;">Wi-Fi</span>
+                <span style="font-size: 1vw; color: #aaa; margin-top:10px;" id="status-text">Conectando...</span>
+            </div>
+        </div>
+
+        <!-- Sección de Fecha, Hora, Sol y Luna (Ocupa 2 columnas) -->
+        <div class="panel panel-time">
+            <div class="info-col">
+                <div class="tag">FECHA Y LUNA</div>
+                <div class="date" id="date">--/--/--</div>
+                <div class="astro-text">Fase Lunar: <span id="moon-phase">Calculando...</span> 🌖</div>
+            </div>
+            <div class="info-col" style="align-items: flex-end; text-align: right;">
+                <div class="tag">HORA Y SOL</div>
+                <div class="clock" id="time">--:--</div>
+                <div class="astro-text">
+                    ☀️ Sale: <span id="sunrise">--:--</span> | 🌇 Oculta: <span id="sunset">--:--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILA 3: Gráficas (Ocupa todas las columnas) -->
+        <div class="panel panel-graph" style="grid-column: span 4;">
+            <div class="tag">GRÁFICA SEMANAL DE TEMPERATURA</div>
+            <div class="chart-container">
+                <canvas id="historyChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CONFIGURACIÓN DE THINGSPEAK
+        const CHANNEL_ID = '3315205';
+        const API_KEY = 'T7L0HEUX8140WICI';
+        
+        // Coordenadas para calcular el Sol (Ajustado para el centro/sur de México)
+        const LAT = 17.55; 
+        const LON = -99.50;
+
+        // MAPEO DE CAMPOS (Ajusta si los envías en diferente orden)
+        const F_TEMP = 'field1';
+        const F_HUM = 'field2';
+        const F_PRESS = 'field3';
+        const F_WIND = 'field4';
+        const F_RAIN = 'field5';
+
+        // 1. RELOJ Y FECHA
+        function updateTime() {
+            const now = new Date();
+            let h = now.getHours();
+            let m = now.getMinutes();
+            let ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12; h = h ? h : 12; 
+            m = m < 10 ? '0' + m : m;
+            
+            document.getElementById('time').innerText = `${h}:${m} ${ampm}`;
+            
+            const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
+            const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
+            document.getElementById('date').innerText = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // 2. FASE LUNAR (Algoritmo matemático)
+        function getMoonPhase() {
+            let date = new Date();
+            let year = date.getFullYear(); let month = date.getMonth() + 1; let day = date.getDate();
+            if (month < 3) { year--; month += 12; }
+            month++;
+            let jd = 365.25 * year + 30.6 * month + day - 694039.09; 
+            jd /= 29.5305882; 
+            let phase = Math.round((jd - parseInt(jd)) * 8);
+            if (phase >= 8) phase = 0;
+            const phases = ['Luna Nueva', 'Creciente', 'Cuarto Creciente', 'Gibosa Creciente', 'Luna Llena', 'Gibosa Menguante', 'Cuarto Menguante', 'Menguante'];
+            document.getElementById('moon-phase').innerText = phases[phase];
+        }
+        getMoonPhase();
+
+        // 3. AMANECER Y ATARDECER (API Gratuita Sunrise-Sunset)
+        async function getSunTimes() {
+            try {
+                const res = await fetch(`https://api.sunrise-sunset.org/json?lat=${LAT}&lng=${LON}&formatted=0`);
+                const data = await res.json();
+                
+                const sunrise = new Date(data.results.sunrise);
+                const sunset = new Date(data.results.sunset);
+                
+                const formatTime = (d) => d.toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit', hour12: true});
+                
+                document.getElementById('sunrise').innerText = formatTime(sunrise);
+                document.getElementById('sunset').innerText = formatTime(sunset);
+            } catch(e) { console.error("Error al obtener sol", e); }
+        }
+        getSunTimes();
+
+        // 4. OBTENER DATOS ACTUALES (ThingSpeak)
+        async function getLiveWeather() {
+            const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=1`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                if(data.feeds.length > 0) {
+                    const f = data.feeds[0];
+                    if(f[F_TEMP]) document.getElementById('temp').innerText = parseFloat(f[F_TEMP]).toFixed(1);
+                    if(f[F_HUM]) document.getElementById('hum').innerText = parseFloat(f[F_HUM]).toFixed(0);
+                    if(f[F_PRESS]) document.getElementById('press').innerText = parseFloat(f[F_PRESS]).toFixed(0);
+                    if(f[F_WIND]) document.getElementById('wind').innerText = parseFloat(f[F_WIND]).toFixed(1);
+                    if(f[F_RAIN]) document.getElementById('rain').innerText = parseFloat(f[F_RAIN]).toFixed(2);
+                    
+                    document.getElementById('status-text').innerText = "Última act: " + new Date(f.created_at).toLocaleTimeString();
+                    document.getElementById('status-text').style.color = "#00ff00";
+                }
+            } catch(e) {
+                document.getElementById('status-text').innerText = "Error de conexión";
+                document.getElementById('status-text').style.color = "red";
+            }
+        }
+        getLiveWeather();
+        setInterval(getLiveWeather, 15000); // Actualiza cada 15 segundos
+
+        // 5. GRÁFICA SEMANAL (Chart.js + ThingSpeak)
+        let weatherChart;
+        async function drawChart() {
+            // Obtenemos los últimos 100 registros (aprox los últimos días dependiendo de tu ESP32)
+            const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=100`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                
+                const labels = [];
+                const temps = [];
+                
+                data.feeds.forEach(f => {
+                    if(f[F_TEMP]) { // Solo graficamos si hay dato de temperatura
+                        const date = new Date(f.created_at);
+                        // Etiqueta: Día/Mes Hora
+                        labels.push(`${date.getDate()}/${date.getMonth()+1} ${date.getHours()}:00`);
+                        temps.push(parseFloat(f[F_TEMP]));
+                    }
+                });
+
+                const ctx = document.getElementById('historyChart').getContext('2d');
+                
+                // Si la gráfica ya existe, la destruimos para actualizarla
+                if(weatherChart) weatherChart.destroy();
+
+                weatherChart = new Chart(ctx, {
+                    type: 'line', // Tipo línea con área bajo la curva
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Temperatura (°C)',
+                            data: temps,
+                            borderColor: '#00d2ff', // Línea azul neón
+                            backgroundColor: 'rgba(0, 210, 255, 0.2)', // Fondo semitransparente
+                            borderWidth: 2,
+                            pointRadius: 1,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { ticks: { color: '#fff' }, grid: { color: '#444' } },
+                            x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { display: false } }
+                        }
+                    }
+                });
+            } catch(e) { console.error("Error al graficar", e); }
+        }
+        drawChart();
+        // Actualizar gráfica cada 5 minutos
+        setInterval(drawChart, 300000);
+    </script>
+</body>
+</html>

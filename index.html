@@ -14,32 +14,34 @@
         }
 
         body {
-            background-color: #000;
-            color: #fff;
+            background-color: #0d0d0d;
+            color: #80d;
             font-family: 'Share Tech Mono', monospace;
             min-height: 100vh;
             width: 100vw;
-            overflow-x: hidden; 
-            overflow-y: auto; /* Permite desplazar hacia abajo */
+            overflow-x: hidden;
+            overflow-y: auto;
             display: flex;
             flex-direction: column;
         }
 
-        /* Estructura del tablero */
         .dashboard {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            /* Ahora son 7 filas en total: 2 de datos y 5 de gráficas */
-            grid-template-rows: 25vh 25vh 40vh 40vh 40vh 40vh 40vh; 
-            gap: 2px;
-            background-color: #333;
+            grid-template-rows: 25vh 25vh repeat(5, 40vh);
+            gap: 15px;
+            padding: 15px;
+            background-color: #1a1a1a;
             min-height: 100%;
             width: 100%;
-            border: 2px solid #333;
         }
 
         .panel {
-            background-color: #000;
+            background: linear-gradient(145deg, #222, #0a0a0a);
+            border: 4px solid;
+            border-color: #4a4a4a #050505 #050505 #4a4a4a;
+            border-radius: 12px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.9), 4px 4px 10px rgba(0, 0, 0, 0.7);
             padding: 15px;
             display: flex;
             flex-direction: column;
@@ -53,47 +55,52 @@
             font-weight: 900;
             font-size: 0.85em;
             text-transform: uppercase;
-            padding: 3px 8px;
+            padding: 4px 10px;
             display: inline-block;
             align-self: flex-start;
             margin-bottom: 10px;
-            border-radius: 2px;
+            border-radius: 3px;
+            box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         .data-container {
             flex-grow: 1;
             display: flex;
-            align-items: center;
+            align-items: baseline;
             justify-content: center;
             position: relative;
+            padding-bottom: 2vh;
         }
 
         .value {
-            font-size: 5vw;
+            font-size: 5.5vw;
             text-align: right;
             line-height: 1;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
         }
 
         .unit {
-            font-size: 0.35em;
-            color: #aaa;
-            margin-left: 5px;
+            font-size: 2.5vw;
+            color: #80d;
+            margin-left: 10px;
+            font-weight: bold;
         }
 
         .sub-text {
             position: absolute;
-            bottom: 10px;
+            bottom: 12px;
             right: 15px;
-            font-size: 0.9em;
-            color: #888;
+            font-size: 0.95em;
+            color: #777;
             font-family: sans-serif;
+            font-weight: bold;
         }
 
         .panel-graph {
             grid-column: span 4;
             padding-bottom: 5px;
         }
-        
+
         .panel-time {
             grid-column: span 2;
             display: flex;
@@ -107,20 +114,34 @@
             justify-content: space-around;
             width: 50%;
         }
-        
-        .clock { font-size: 5.5vw; line-height: 1; }
-        .date { font-size: 3vw; line-height: 1; margin-bottom: 10px;}
-        .astro-text { font-size: 1.2vw; color: #ffeb3b; margin-top: 5px;}
+
+        .clock {
+            font-size: 5.5vw;
+            line-height: 1;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        }
+
+        .date {
+            font-size: 3vw;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .astro-text {
+            font-size: 1.2vw;
+            color: #ffeb3b;
+            margin-top: 5px;
+        }
 
         .chart-container {
             position: relative;
             height: 100%;
             width: 100%;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
-
     <div class="dashboard">
         <div class="panel">
             <div class="tag">TEMPERATURA</div>
@@ -164,19 +185,20 @@
 
         <div class="panel">
             <div class="tag">ESTADO RED</div>
-            <div class="data-container" style="flex-direction: column;">
-                <span class="value" id="status-icon" style="color: #00ff00;">Wi-Fi</span>
-                <span style="font-size: 1vw; color: #aaa; margin-top:10px;" id="status-text">Conectando...</span>
+            <div class="data-container" style="flex-direction: column; align-items: center; justify-content: center;">
+                <span class="value" id="status-icon" style="color: #00ff00; font-size: 4vw;">Wi-Fi</span>
+                <span style="font-size: 1.2vw; color: #aaa; margin-top: 15px;" id="status-text">Conectando...</span>
             </div>
         </div>
 
         <div class="panel panel-time">
             <div class="info-col">
+                
                 <div class="tag">FECHA Y LUNA</div>
                 <div class="date" id="date">--/--/--</div>
                 <div class="astro-text">Fase Lunar: <span id="moon-phase">Calculando...</span> 🌖</div>
             </div>
-            <div class="info-col" style="align-items: flex-end; text-align: right;">
+            <div class="info-col" style="align-items: flex-end; text-align: right; ">
                 <div class="tag">HORA Y SOL</div>
                 <div class="clock" id="time">--:--</div>
                 <div class="astro-text">
@@ -186,203 +208,146 @@
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag">GRÁFICA SEMANAL DE TEMPERATURA</div>
-            <div class="chart-container">
-                <canvas id="tempChart"></canvas>
-            </div>
+            <div class="tag"style="background-color: #F6FF00;">GRÁFICA SEMANAL DE TEMPERATURA</div>
+            <div class="chart-container"><canvas id="tempChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
             <div class="tag" style="background-color: #00ff00;">GRÁFICA SEMANAL DE HUMEDAD</div>
-            <div class="chart-container">
-                <canvas id="humChart"></canvas>
-            </div>
+            <div class="chart-container"><canvas id="humChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag" style="background-color: #ff00ff;">GRÁFICA SEMANAL DE PRESIÓN</div>
-            <div class="chart-container">
-                <canvas id="pressChart"></canvas>
-            </div>
+            <div class="tag" style="background-color: #ff0000;">GRÁFICA SEMANAL DE PRESIÓN</div>
+            <div class="chart-container"><canvas id="pressChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag" style="background-color: #ffb700;">GRÁFICA SEMANAL DE VIENTO</div>
-            <div class="chart-container">
-                <canvas id="windChart"></canvas>
-            </div>
+            <div class="tag" style="background-color: #FF5700;">GRÁFICA SEMANAL DE VIENTO</div>
+            <div class="chart-container"><canvas id="windChart"></canvas></div>
         </div>
 
         <div class="panel panel-graph">
-            <div class="tag" style="background-color: #0055ff; color: #fff;">GRÁFICA SEMANAL DE LLUVIA</div>
-            <div class="chart-container">
-                <canvas id="rainChart"></canvas>
-            </div>
+            <div class="tag" style="background-color: #0055ff;">GRÁFICA SEMANAL DE LLUVIA</div>
+            <div class="chart-container"><canvas id="rainChart"></canvas></div>
         </div>
-
     </div>
 
     <script>
-        // CONFIGURACIÓN DE THINGSPEAK
-        const CHANNEL_ID = '3315205';
-        const API_KEY = 'T7L0HEUX8140WICI';
-        
-        // Coordenadas para calcular el Sol
-        const LAT = 17.55; 
-        const LON = -99.50;
+        const API = { ch: '3315205', key: 'T7L0HEUX8140WICI', lat: 17.55, lon: -99.50 };
+        const FLD = ['field1', 'field2', 'field3', 'field4', 'field5'];
+        const $ = id => document.getElementById(id);
 
-        // MAPEO DE CAMPOS
-        const F_TEMP = 'field1';
-        const F_HUM = 'field2';
-        const F_PRESS = 'field3';
-        const F_WIND = 'field4';
-        const F_RAIN = 'field5';
-
-        // 1. RELOJ Y FECHA
         function updateTime() {
-            const now = new Date();
-            let h = now.getHours();
-            let m = now.getMinutes();
-            let ampm = h >= 12 ? 'PM' : 'AM';
-            h = h % 12; h = h ? h : 12; 
-            m = m < 10 ? '0' + m : m;
-            
-            document.getElementById('time').innerText = `${h}:${m} ${ampm}`;
+            const d = new Date();
+            const h = d.getHours();
+            const m = d.getMinutes();
+            $('time').innerText = `${h % 12 || 12}:${m < 10 ? '0' + m : m} ${h >= 12 ? 'PM' : 'AM'}`;
             
             const days = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB'];
             const months = ['ENE', 'FEB', 'MAR', 'ABR', 'MAY', 'JUN', 'JUL', 'AGO', 'SEP', 'OCT', 'NOV', 'DIC'];
-            document.getElementById('date').innerText = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+            $('date').innerText = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
         }
         setInterval(updateTime, 1000);
         updateTime();
 
-        // 2. FASE LUNAR
-        function getMoonPhase() {
-            let date = new Date();
-            let year = date.getFullYear(); let month = date.getMonth() + 1; let day = date.getDate();
-            if (month < 3) { year--; month += 12; }
-            month++;
-            let jd = 365.25 * year + 30.6 * month + day - 694039.09; 
-            jd /= 29.5305882; 
-            let phase = Math.round((jd - parseInt(jd)) * 8);
-            if (phase >= 8) phase = 0;
+        (function getMoonPhase() {
+            let d = new Date(), y = d.getFullYear(), m = d.getMonth() + 1, day = d.getDate();
+            if (m < 3) { y--; m += 12; }
+            let jd = 365.25 * y + 30.6 * (m + 1) + day - 694039.09;
+            let p = Math.round(((jd / 29.5305882) % 1) * 8) % 8;
             const phases = ['Luna Nueva', 'Creciente', 'Cuarto Creciente', 'Gibosa Creciente', 'Luna Llena', 'Gibosa Menguante', 'Cuarto Menguante', 'Menguante'];
-            document.getElementById('moon-phase').innerText = phases[phase];
-        }
-        getMoonPhase();
+            $('moon-phase').innerText = phases[p];
+        })();
 
-        // 3. AMANECER Y ATARDECER
         async function getSunTimes() {
             try {
-                const res = await fetch(`https://api.sunrise-sunset.org/json?lat=${LAT}&lng=${LON}&formatted=0`);
-                const data = await res.json();
+                const res = await fetch(`https://api.sunrise-sunset.org/json?lat=${API.lat}&lng=${API.lon}&formatted=0`);
+                const { results: { sunrise, sunset } } = await res.json();
+                const fmt = d => new Date(d).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', hour12: true });
                 
-                const sunrise = new Date(data.results.sunrise);
-                const sunset = new Date(data.results.sunset);
-                
-                const formatTime = (d) => d.toLocaleTimeString('es-MX', {hour: '2-digit', minute:'2-digit', hour12: true});
-                
-                document.getElementById('sunrise').innerText = formatTime(sunrise);
-                document.getElementById('sunset').innerText = formatTime(sunset);
-            } catch(e) { console.error("Error al obtener sol", e); }
+                $('sunrise').innerText = fmt(sunrise);
+                $('sunset').innerText = fmt(sunset);
+            } catch (e) { 
+                console.error("Error al obtener sol", e); 
+            }
         }
         getSunTimes();
 
-        // 4. OBTENER DATOS ACTUALES
         async function getLiveWeather() {
-            const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=1`;
             try {
-                const res = await fetch(url);
-                const data = await res.json();
-                if(data.feeds.length > 0) {
-                    const f = data.feeds[0];
-                    if(f[F_TEMP]) document.getElementById('temp').innerText = parseFloat(f[F_TEMP]).toFixed(1);
-                    if(f[F_HUM]) document.getElementById('hum').innerText = parseFloat(f[F_HUM]).toFixed(0);
-                    if(f[F_PRESS]) document.getElementById('press').innerText = parseFloat(f[F_PRESS]).toFixed(0);
-                    if(f[F_WIND]) document.getElementById('wind').innerText = parseFloat(f[F_WIND]).toFixed(1);
-                    if(f[F_RAIN]) document.getElementById('rain').innerText = parseFloat(f[F_RAIN]).toFixed(2);
-                    
-                    document.getElementById('status-text').innerText = "Última act: " + new Date(f.created_at).toLocaleTimeString();
-                    document.getElementById('status-text').style.color = "#00ff00";
-                }
-            } catch(e) {
-                document.getElementById('status-text').innerText = "Error de conexión";
-                document.getElementById('status-text').style.color = "red";
+                const res = await fetch(`https://api.thingspeak.com/channels/${API.ch}/feeds.json?api_key=${API.key}&results=1`);
+                const { feeds } = await res.json();
+                if (!feeds[0]) return;
+                
+                const f = feeds[0];
+                const setV = (id, val, dec) => val && ($(id).innerText = parseFloat(val).toFixed(dec));
+                
+                setV('temp', f[FLD[0]], 1);
+                setV('hum', f[FLD[1]], 0);
+                setV('press', f[FLD[2]], 0);
+                setV('wind', f[FLD[3]], 1);
+                setV('rain', f[FLD[4]], 2);
+                
+                $('status-text').innerText = "Última act: " + new Date(f.created_at).toLocaleTimeString();
+                $('status-text').style.color = "#00ff00";
+            } catch (e) {
+                $('status-text').innerText = "Error de conexión";
+                $('status-text').style.color = "red";
             }
         }
         getLiveWeather();
         setInterval(getLiveWeather, 15000);
 
-        // 5. GRÁFICAS (Chart.js + ThingSpeak)
-        let chart1, chart2, chart3, chart4, chart5; // Variables para las 5 gráficas
-
-        function createChart(ctxId, chartInstance, labelText, dataArray, labelsArray, lineColor, bgColor) {
-            const ctx = document.getElementById(ctxId).getContext('2d');
-            if (chartInstance) chartInstance.destroy(); 
-
-            return new Chart(ctx, {
+        const charts = {};
+        function createChart(id, label, data, labels, color, bg) {
+            if (charts[id]) charts[id].destroy();
+            charts[id] = new Chart($(id).getContext('2d'), {
                 type: 'line',
-                data: {
-                    labels: labelsArray,
-                    datasets: [{
-                        label: labelText,
-                        data: dataArray,
-                        borderColor: lineColor,
-                        backgroundColor: bgColor,
-                        borderWidth: 2,
-                        pointRadius: 1,
-                        fill: true,
-                        spanGaps: true 
-                    }]
+                data: { 
+                    labels, 
+                    datasets: [{ label, data, borderColor: color, backgroundColor: bg, borderWidth: 2, pointRadius: 1, fill: true, spanGaps: true }] 
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { ticks: { color: '#fff' }, grid: { color: '#444' } },
-                        x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { display: false } }
-                    }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } }, 
+                    scales: { 
+                        y: { ticks: { color: '#fff' }, grid: { color: '#444' } }, 
+                        x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { display: false } } 
+                    } 
                 }
             });
         }
 
         async function drawCharts() {
-            const url = `https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds.json?api_key=${API_KEY}&results=100`;
             try {
-                const res = await fetch(url);
-                const data = await res.json();
+                const res = await fetch(`https://api.thingspeak.com/channels/${API.ch}/feeds.json?api_key=${API.key}&results=100`);
+                const { feeds } = await res.json();
                 
-                const labels = [];
-                const temps = [];
-                const hums = [];
-                const presses = [];
-                const winds = [];
-                const rains = [];
+                let lbl = [], t = [], h = [], p = [], w = [], rn = [];
                 
-                data.feeds.forEach(f => {
-                    const date = new Date(f.created_at);
-                    labels.push(`${date.getDate()}/${date.getMonth()+1} ${date.getHours()}:00`);
-                    
-                    temps.push(f[F_TEMP] ? parseFloat(f[F_TEMP]) : null);
-                    hums.push(f[F_HUM] ? parseFloat(f[F_HUM]) : null);
-                    presses.push(f[F_PRESS] ? parseFloat(f[F_PRESS]) : null);
-                    winds.push(f[F_WIND] ? parseFloat(f[F_WIND]) : null);
-                    rains.push(f[F_RAIN] ? parseFloat(f[F_RAIN]) : null);
+                feeds.forEach(f => {
+                    const d = new Date(f.created_at);
+                    lbl.push(`${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:00`);
+                    t.push(f[FLD[0]] ? parseFloat(f[FLD[0]]) : null);
+                    h.push(f[FLD[1]] ? parseFloat(f[FLD[1]]) : null);
+                    p.push(f[FLD[2]] ? parseFloat(f[FLD[2]]) : null);
+                    w.push(f[FLD[3]] ? parseFloat(f[FLD[3]]) : null);
+                    rn.push(f[FLD[4]] ? parseFloat(f[FLD[4]]) : null);
                 });
-
-                // Crear las 5 gráficas
-                chart1 = createChart('tempChart', chart1, 'Temperatura (°C)', temps, labels, '#00d2ff', 'rgba(0, 210, 255, 0.2)');
-                chart2 = createChart('humChart', chart2, 'Humedad (%)', hums, labels, '#00ff00', 'rgba(0, 255, 0, 0.2)');
-                chart3 = createChart('pressChart', chart3, 'Presión (hPa)', presses, labels, '#ff00ff', 'rgba(255, 0, 255, 0.2)');
-                chart4 = createChart('windChart', chart4, 'Viento (km/h)', winds, labels, '#ffb700', 'rgba(255, 183, 0, 0.2)');
-                chart5 = createChart('rainChart', chart5, 'Lluvia (mm)', rains, labels, '#0055ff', 'rgba(0, 85, 255, 0.2)');
-
-            } catch(e) { console.error("Error al graficar", e); }
+                
+                createChart('tempChart', 'Temperatura (°C)', t, lbl, '#F6FF00', 'rgba(246, 255, 0, 0.2)');
+                createChart('humChart', 'Humedad (%)', h, lbl, '#00ff00', 'rgba(0, 255, 0, 0.2)');
+                createChart('pressChart', 'Presión (hPa)', p, lbl, '#ff0000', 'rgba(255, 0, 0, 0.2)');
+                createChart('windChart', 'Viento (km/h)', w, lbl, '#FF5700', 'rgba(255, 87, 0, 0.2)');
+                createChart('rainChart', 'Lluvia (mm)', rn, lbl, '#0055ff', 'rgba(0, 85, 255, 0.2)');
+            } catch (e) { 
+                console.error("Error al graficar", e); 
+            }
         }
-        
         drawCharts();
-        setInterval(drawCharts, 300000); 
+        setInterval(drawCharts, 300000);
     </script>
 </body>
 </html>

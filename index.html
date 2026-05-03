@@ -292,7 +292,7 @@
                 setV('wind', f[FLD[3]], 1);
                 setV('rain', f[FLD[4]], 2);
                 
-                $('status-text').innerText = "Última actualización: " + new Date(f.created_at).toLocaleTimeString();
+                $('status-text').innerText = "Última act: " + new Date(f.created_at).toLocaleTimeString();
                 $('status-text').style.color = "#00ff00";
             } catch (e) {
                 $('status-text').innerText = "Error de conexión";
